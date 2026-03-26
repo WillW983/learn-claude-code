@@ -3,6 +3,7 @@ import subprocess
 from anthropic import Anthropic
 from dotenv import load_dotenv
 load_dotenv(override=True)
+
 if os.getenv("ANTHROPIC_BASE_URL"):
     os.environ.pop("ANTHROPIC_AUTH_TOKEN", None)
 client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
@@ -17,6 +18,7 @@ TOOLS = [{
         "required": ["command"],
     },
 }]
+
 def run_bash(command: str) -> str:
     dangerous = ["rm -rf /", "sudo", "shutdown", "reboot", "> /dev/"]
     if any(d in command for d in dangerous):
@@ -28,6 +30,7 @@ def run_bash(command: str) -> str:
         return out[:50000] if out else "(no output)"
     except subprocess.TimeoutExpired:
         return "Error: Timeout (120s)"
+
 # -- The core pattern: a while loop that calls tools until the model stops --
 def agent_loop(messages: list):
     while True:
@@ -50,6 +53,7 @@ def agent_loop(messages: list):
                 results.append({"type": "tool_result", "tool_use_id": block.id,
                                 "content": output})
         messages.append({"role": "user", "content": results})
+
 if __name__ == "__main__":
     history = []
     while True:
